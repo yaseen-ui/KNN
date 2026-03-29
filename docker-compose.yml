@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  token-similarity-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DEFAULT_STRATEGY: ${DEFAULT_STRATEGY:-levenshtein}
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
+      CACHE_TTL: ${CACHE_TTL:-300000}
+      CACHE_MAX_SIZE: ${CACHE_MAX_SIZE:-1000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-simple}
+    volumes:
+      # Mount data directory to persist tokens between restarts
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
